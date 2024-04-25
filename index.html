@@ -28,15 +28,15 @@
               <form class="flex-fill d-flex flex-column justify-content-between" id="addContactForm">
                 <div class="row g-3">
                   <div>
-                    <input type="text" id="input-name" class="form-control form-item" placeholder="Введите ФИО" />
+                    <input type="text" id="input-name" name="fullName" class="form-control form-item" placeholder="Введите ФИО" />
                     <p class="text-danger mb-0 d-none"></p>
                   </div>
                   <div>
-                    <input type="tel" id="input-phone" class="form-control form-item" placeholder="Введите номер" />
+                    <input type="tel" id="input-phone" name="telephone" class="form-control form-item" placeholder="Введите номер" />
                     <p class="text-danger mb-0 d-none"></p>
                   </div>
                   <div>
-                    <select class="form-select form-item">
+                    <select class="form-select form-item" name="groupType">
                       <option value="" selected disabled hidden>Выберите группу</option>
                       <!-- <option value="empty" disabled class="text-align-center">Список пуст</option> -->
                       <option value="1">One</option>
@@ -90,12 +90,12 @@
     <main>
       <section class="container contacts min-vh-100 d-flex">
         <div class="contacts__content d-flex flex-column flex-fill">
-          <!-- <div class="contacts__accordion-item shadow">
+          <div class="contacts__accordion-item shadow">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed fw-bold p-4 fs-5" type="button" data-bs-toggle="collapse" data-bs-target="#group-1" aria-expanded="true" aria-controls="group-1">Друзья</button>
             </h2>
             <div id="group-1" class="accordion-collapse collapse">
-              <div class="accordion-body">
+              <!-- <div class="accordion-body">
                 <div class="contacts__group-item">
                   <h3 class="mb-0 text-muted fs-5 fw-normal">Колпаков Даниил Павлович</h3>
                   <div class="contacts__group-item-right">
@@ -114,9 +114,9 @@
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> -->
             </div>
-          </div> -->
+          </div>
           <!-- <p class="text-muted empty-state-text">Список контактов пуст</p> -->
         </div>
       </section>

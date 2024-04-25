@@ -6,6 +6,8 @@ if (!localStorage.getItem("groups")) {
   localStorage.setItem("groups", JSON.stringify([]));
 }
 
+contactsRenderHandler();
+
 const telephoneInput = document.getElementById("input-phone");
 const nameInput = document.getElementById("input-name");
 
@@ -46,13 +48,51 @@ function validation(form, ...masks) {
   return result;
 }
 
+function contactsRenderHandler() {
+  const contacts = JSON.parse(localStorage.getItem("contacts"));
+
+  contacts.forEach((contact) => addContactHandler(contact));
+}
+
+function addContactHandler(contact) {
+  const { fullName, telephone, groupType } = contact;
+
+  document.getElementById(`group-${groupType}`).insertAdjacentHTML(
+    "beforeend",
+    `
+    <div class="accordion-body">
+      <div class="contacts__group-item">
+        <h3 class="mb-0 text-muted fs-5 fw-normal">${fullName}</h3>
+        <div class="contacts__group-item-right">
+          <a href="tel:+79114211471" class="text-body fs-5 text-decoration-none">${telephone}</a>
+          <div class="contacts__group-item-controls">
+            <button type="button" class="btn btn-outline-secondary p-2" data-edit="#">
+              <div class="icon-container">
+                <i class="fa-regular fa-pen-to-square"></i>
+              </div>
+            </button>
+            <button type="button" class="btn btn-outline-secondary p-2" data-delete="#">
+              <div class="icon-container">
+                <i class="fa-solid fa-trash"></i>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    `
+  );
+}
+
 document.getElementById("addContactForm").addEventListener("submit", function (e) {
   e.preventDefault();
 
   if (validation(this, nameMask, telephoneMask)) {
-    console.log(true);
-  } else {
-    console.log(false);
+    const formData = Object.fromEntries(new FormData(this));
+    const contacts = JSON.parse(localStorage.getItem("contacts"));
+    contacts.push(formData);
+    addContactHandler(formData);
+    localStorage.setItem("contacts", JSON.stringify(contacts));
   }
 });
 
