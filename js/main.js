@@ -8,6 +8,7 @@ if (!localStorage.getItem("groups")) {
 
 contactsRenderHandler();
 groupFieldsRenderHandler();
+groupOptionsRenderHandler();
 
 const telephoneInput = document.getElementById("input-phone");
 const nameInput = document.getElementById("input-name");
@@ -38,8 +39,6 @@ function validation(form, ...masks) {
     result = false;
   }
 
-  // console.log(form);
-
   [].forEach.call(form.querySelectorAll(".form-item"), (input, index) => {
     const maskIsComplete = masks[index]?.masked.isComplete;
 
@@ -51,6 +50,21 @@ function validation(form, ...masks) {
   });
 
   return result;
+}
+
+function groupOptionsRenderHandler() {
+  const groups = JSON.parse(localStorage.getItem("groups"));
+  const select = document.getElementById("selectGroup");
+  select.innerHTML = "";
+  select.insertAdjacentHTML("beforeend", `<option value="" selected disabled hidden>Выберите группу</option>`);
+
+  if (groups.length) {
+    groups.forEach((group) => {
+      select.insertAdjacentHTML("beforeend", `<option value="${group}">${group}</option>`);
+    });
+  } else {
+    select.insertAdjacentHTML("beforeend", `<option value="empty" disabled class="text-align-center">Список пуст</option>`);
+  }
 }
 
 function contactsRenderHandler() {
@@ -87,8 +101,6 @@ function groupFieldsRenderHandler() {
     groupForm.insertAdjacentHTML("beforeend", `<p class="text-muted">Список групп пуст</p>`);
   }
 }
-
-const groupFields = [];
 
 document.getElementById("addGroupBtn").addEventListener("click", () => {
   const groupForm = document.getElementById("addGroupForm").firstElementChild;
@@ -172,8 +184,8 @@ document.getElementById("addGroupForm").addEventListener("submit", function (e) 
   e.preventDefault();
 
   if (validation(this) && this.querySelectorAll(".form-item").length) {
+    // const groups = JSON.parse(localStorage.getItem("groups"));
     const formData = new FormData(this);
-
     const data = new Set();
 
     for (let value of formData.values()) {
@@ -181,6 +193,8 @@ document.getElementById("addGroupForm").addEventListener("submit", function (e) 
     }
 
     localStorage.setItem("groups", JSON.stringify([...data]));
+
+    groupOptionsRenderHandler(); // !!!
 
     // const groups = JSON.parse(localStorage.getItem("groups"));
     // groups.push(formData);
