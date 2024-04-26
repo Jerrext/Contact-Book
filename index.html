@@ -18,14 +18,14 @@
           <h1 class="text-primary ms-3 fs-5 mb-0">Книга контактов</h1>
         </div>
         <div class="d-flex flex-column flex-sm-row col-12 col-sm-auto mt-3 mt-sm-0">
-          <button type="button" class="btn btn-danger mb-2 mb-sm-0 me-sm-2" data-bs-toggle="offcanvas" data-bs-target="#addContact" aria-controls="addContact">Добавить контакт<span class="ms-2">&#10010;</span></button>
+          <button id="addContactBtn" type="button" class="btn btn-danger mb-2 mb-sm-0 me-sm-2" data-bs-toggle="offcanvas" data-bs-target="#addContact" aria-controls="addContact">Добавить контакт<span class="ms-2">&#10010;</span></button>
           <div class="offcanvas offcanvas-start" tabindex="-1" id="addContact" aria-labelledby="addContactLabel">
             <div class="offcanvas-header border-bottom py-4">
               <h5 class="offcanvas-title" id="addContactLabel">Добавление контакта</h5>
               <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
             <div class="offcanvas-body p-4 d-flex">
-              <form class="flex-fill d-flex flex-column justify-content-between" id="addContactForm">
+              <form class="flex-fill d-flex flex-column justify-content-between" id="addContactForm" data-action="add" data-current="">
                 <div class="row g-3">
                   <div>
                     <div>

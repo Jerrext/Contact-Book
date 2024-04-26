@@ -108,13 +108,27 @@ document.getElementById("addContactForm").addEventListener("submit", function (e
 
   if (validation(this, nameMask, telephoneMask)) {
     const formData = new FormData(this);
-    formData.append("id", Math.trunc(Math.random() * 100000).toString());
     const contacts = JSON.parse(localStorage.getItem("contacts"));
-    contacts.push(Object.fromEntries(formData));
-    localStorage.setItem("contacts", JSON.stringify(contacts));
+    if (this.dataset.action === "edit") {
+      contacts.forEach((contact, index) => {
+        if (contact.id === this.dataset.current) {
+          formData.append("id", this.dataset.current);
+          contacts.splice(index, 1, Object.fromEntries(formData));
+          localStorage.setItem("contacts", JSON.stringify(contacts));
+        }
+      });
+    } else {
+      formData.append("id", Math.trunc(Math.random() * 100000).toString());
+      contacts.push(Object.fromEntries(formData));
+      localStorage.setItem("contacts", JSON.stringify(contacts));
+    }
     groupAccordionsRenderHandler();
     addContactFormWindow.hide();
   }
+});
+
+document.getElementById("addContactBtn").addEventListener("click", () => {
+  document.getElementById("addContactForm").dataset.action = "add";
 });
 
 document.getElementById("addGroupForm").addEventListener("click", function (e) {
@@ -126,6 +140,13 @@ document.getElementById("addGroupForm").addEventListener("click", function (e) {
 
 document.getElementById("addContact").addEventListener("hide.bs.offcanvas", function () {
   this.querySelector("#addContactForm").reset();
+
+  const formInputs = [...this.querySelectorAll(".form-item")];
+
+  formInputs.forEach((input) => {
+    input.parentElement.nextElementSibling.classList.add("d-none");
+    input.parentElement.nextElementSibling.textContent = "";
+  });
 });
 
 document.getElementById("addGroup").addEventListener("hide.bs.offcanvas", function () {
@@ -140,18 +161,31 @@ document.addEventListener("input", (e) => {
 });
 
 document.getElementById("contacts").addEventListener("click", function (e) {
-  console.log(1);
   const contacts = JSON.parse(localStorage.getItem("contacts"));
-  const buttonTarget = e.target.closest("[data-delete]");
-  if (buttonTarget) {
-    buttonTarget.parentElement.parentElement.remove();
+  const buttonDeleteTarget = e.target.closest("[data-delete]");
+  const buttonEditTarget = e.target.closest("[data-edit]");
+  const addContactForm = document.getElementById("addContactForm");
+
+  if (buttonDeleteTarget) {
+    buttonDeleteTarget.parentElement.parentElement.remove();
     contacts.forEach((contact, index) => {
-      if (contact.id == buttonTarget.dataset.delete) {
+      if (contact.id == buttonDeleteTarget.dataset.delete) {
         contacts.splice(index, 1);
         localStorage.setItem("contacts", JSON.stringify(contacts));
         groupAccordionsRenderHandler();
       }
     });
+  } else if (buttonEditTarget) {
+    const inputs = [...addContactForm.querySelectorAll(".form-item")];
+    const currentContact = contacts.find((contact) => contact.id == buttonEditTarget.dataset.edit);
+    addContactFormWindow.show();
+    addContactForm.dataset.action = "edit";
+    addContactForm.dataset.current = buttonEditTarget.dataset.edit;
+    inputs[0].value = currentContact.fullName;
+    nameMask.updateValue();
+    inputs[1].value = currentContact.telephone;
+    telephoneMask.updateValue();
+    inputs[2].value = currentContact.groupType;
   }
 });
 
