@@ -11,7 +11,6 @@ if (!localStorage.getItem("groups")) {
 // RENDER
 
 groupAccordionsRenderHandler();
-// contactsRenderHandler();
 groupFieldsRenderHandler();
 groupOptionsRenderHandler();
 
@@ -39,46 +38,60 @@ const nameMask = IMask(nameInput, {
 
 // LISTENERS
 
+const addContactFormWindow = new bootstrap.Offcanvas(addContact);
+const addGroupFormWindow = new bootstrap.Offcanvas(addGroup);
+
 document.getElementById("addGroupForm").addEventListener("submit", function (e) {
   e.preventDefault();
 
-  if (validation(this) && this.querySelectorAll(".form-item").length) {
-    // const groups = JSON.parse(localStorage.getItem("groups"));
-    const formData = new FormData(this);
-    const data = new Set();
+  if (validation(this)) {
+    const groups = JSON.parse(localStorage.getItem("groups"));
+    const contacts = JSON.parse(localStorage.getItem("contacts"));
 
-    [...formData.values()].forEach((value, index) => {
-      data.add({ value: index, label: value });
+    const formInputs = [...this.querySelectorAll(".form-item")];
+
+    let newContactsData = contacts;
+    const oldGroupData = new Map(groups.map((item) => [item.value, item.label]));
+    const newGroupData = new Map();
+
+    formInputs.forEach((input) => {
+      newGroupData.set(input.dataset.targetDelete, input.value);
     });
 
-    localStorage.setItem("groups", JSON.stringify([...data]));
+    for (let [value, label] of oldGroupData) {
+      if (!newGroupData.has(value)) {
+        newContactsData = contacts.filter((item) => item.groupType !== value);
+      }
+    }
 
-    groupOptionsRenderHandler(); // !!!
+    const dataTransformed = Object.entries(Object.fromEntries(newGroupData)).map((item) => ({ value: item[0], label: item[1] }));
 
-    // const groups = JSON.parse(localStorage.getItem("groups"));
-    // groups.push(formData);
-    // addContactHandler(formData);
+    localStorage.setItem("groups", JSON.stringify(dataTransformed));
+    localStorage.setItem("contacts", JSON.stringify(newContactsData));
+
+    groupOptionsRenderHandler();
+    groupFieldsRenderHandler();
+    groupAccordionsRenderHandler();
+    addGroupFormWindow.hide();
   }
 });
 
 document.getElementById("addGroupBtn").addEventListener("click", () => {
   const groupForm = document.getElementById("addGroupForm").firstElementChild;
 
-  // let groupFieldsLength = localStorage.getItem("groups").length;
-
-  // console.log(groupFieldsLength);
-
-  if (groupForm.firstElementChild.tagName === "P") {
+  if (groupForm.firstElementChild && groupForm.firstElementChild.tagName === "P") {
     groupForm.innerHTML = "";
   }
+
+  const randomId = Math.trunc(Math.random() * 100000);
 
   groupForm.insertAdjacentHTML(
     "beforeend",
     `
     <div class="mb-3">
       <div class="d-flex">
-        <input type="text" class="form-control me-2 form-item" name="group" placeholder="Введите название" />
-        <button type="button" class="btn btn-outline-secondary p-2" data-delete="#">
+        <input type="text" class="form-control me-2 form-item" data-target-delete="${randomId}" name="group" placeholder="Введите название" />
+        <button type="button" class="btn btn-outline-secondary p-2" data-delete="${randomId}">
           <div class="icon-container">
             <i class="fa-solid fa-trash"></i>
           </div>
@@ -99,7 +112,23 @@ document.getElementById("addContactForm").addEventListener("submit", function (e
     contacts.push(formData);
     localStorage.setItem("contacts", JSON.stringify(contacts));
     groupAccordionsRenderHandler();
+    addContactFormWindow.hide();
   }
+});
+
+document.getElementById("addGroupForm").addEventListener("click", function (e) {
+  const buttonTarget = e.target.closest("[data-delete]");
+  if (buttonTarget) {
+    buttonTarget.parentElement.parentElement.remove();
+  }
+});
+
+document.getElementById("addContact").addEventListener("hide.bs.offcanvas", function () {
+  this.querySelector("#addContactForm").reset();
+});
+
+document.getElementById("addGroup").addEventListener("hide.bs.offcanvas", function () {
+  groupFieldsRenderHandler();
 });
 
 document.addEventListener("input", (e) => {
@@ -123,8 +152,8 @@ function groupFieldsRenderHandler() {
         `
         <div class="mb-3">
           <div class="d-flex">
-            <input type="text" class="form-control me-2 form-item" name="group" placeholder="Введите название" value="${group.label}" />
-            <button type="button" class="btn btn-outline-secondary p-2" data-delete="#">
+            <input type="text" class="form-control me-2 form-item" data-target-delete="${group.value}" name="group" placeholder="Введите название" value="${group.label}" />
+            <button type="button" class="btn btn-outline-secondary p-2" data-delete="${group.value}">
               <div class="icon-container">
                 <i class="fa-solid fa-trash"></i>
               </div>
@@ -161,7 +190,7 @@ function groupAccordionsRenderHandler() {
   const contactsContainer = document.getElementById("contacts");
   contactsContainer.innerHTML = "";
 
-  if (groups.length) {
+  if (contacts.length) {
     groups.forEach((group) => {
       const filteredContacts = contacts.filter((contact) => contact.groupType == group.value);
 
