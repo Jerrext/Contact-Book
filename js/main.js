@@ -32,17 +32,21 @@ const nameMask = IMask(nameInput, {
 function validation(form, ...masks) {
   let result = true;
 
-  function setError(input, errText) {
-    input.nextElementSibling.classList.remove("d-none");
-    input.nextElementSibling.textContent = errText;
+  function setError(prevSibling, errText) {
+    prevSibling.nextElementSibling.classList.remove("d-none");
+    prevSibling.nextElementSibling.textContent = errText;
     result = false;
   }
 
+  // console.log(form);
+
   [].forEach.call(form.querySelectorAll(".form-item"), (input, index) => {
+    const maskIsComplete = masks[index]?.masked.isComplete;
+
     if (input.value.length === 0) {
-      setError(input, "Поле не заполнено");
-    } else if (masks[index]?.masked.isComplete !== undefined && !masks[index]?.masked.isComplete) {
-      setError(input, "Введите валидные данные");
+      setError(input.parentElement, "Поле не заполнено");
+    } else if (maskIsComplete !== undefined && !maskIsComplete) {
+      setError(input.parentElement, "Введите валидные данные");
     }
   });
 
@@ -67,13 +71,16 @@ function groupFieldsRenderHandler() {
       groupForm.insertAdjacentHTML(
         "beforeend",
         `
-        <div class="d-flex mb-3">
-          <input type="text" class="form-control me-2" placeholder="Введите название" value="${title}" />
-          <button type="button" class="btn btn-outline-secondary p-2" data-delete="#">
-            <div class="icon-container">
-              <i class="fa-solid fa-trash"></i>
-            </div>
-          </button>
+        <div class="mb-3">
+          <div class="d-flex">
+            <input type="text" class="form-control me-2 form-item" placeholder="Введите название" value="${title}" />
+            <button type="button" class="btn btn-outline-secondary p-2" data-delete="#">
+              <div class="icon-container">
+                <i class="fa-solid fa-trash"></i>
+              </div>
+            </button>
+          </div>
+          <p class="text-danger mb-0 d-none"></p>
         </div>
         `
       );
@@ -93,13 +100,16 @@ document.getElementById("addGroupBtn").addEventListener("click", () => {
   groupForm.insertAdjacentHTML(
     "beforeend",
     `
-    <div class="d-flex mb-3">
-      <input type="text" class="form-control me-2" placeholder="Введите название" />
-      <button type="button" class="btn btn-outline-secondary p-2" data-delete="#">
-        <div class="icon-container">
-          <i class="fa-solid fa-trash"></i>
-        </div>
-      </button>
+    <div class="mb-3">
+      <div class="d-flex">
+        <input type="text" class="form-control me-2 form-item" placeholder="Введите название" />
+        <button type="button" class="btn btn-outline-secondary p-2" data-delete="#">
+          <div class="icon-container">
+            <i class="fa-solid fa-trash"></i>
+          </div>
+        </button>
+      </div>
+      <p class="text-danger mb-0 d-none"></p>
     </div>
     `
   );
@@ -149,11 +159,19 @@ document.getElementById("addContactForm").addEventListener("submit", function (e
 
 document.addEventListener("input", (e) => {
   if (e.target.classList.contains("form-item")) {
-    e.target.nextElementSibling.classList.add("d-none");
-    e.target.nextElementSibling.textContent = "";
+    e.target.parentElement.nextElementSibling.classList.add("d-none");
+    e.target.parentElement.nextElementSibling.textContent = "";
   }
 });
 
-document.getElementById("addGroupForm").addEventListener("submit", (e) => {
+document.getElementById("addGroupForm").addEventListener("submit", function (e) {
   e.preventDefault();
+
+  if (validation(this)) {
+    // const formData = Object.fromEntries(new FormData(this));
+    // const groups = JSON.parse(localStorage.getItem("groups"));
+    // groups.push(formData);
+    // addContactHandler(formData);
+    // localStorage.setItem("groups", JSON.stringify(groups));
+  }
 });

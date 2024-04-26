@@ -28,21 +28,27 @@
               <form class="flex-fill d-flex flex-column justify-content-between" id="addContactForm">
                 <div class="row g-3">
                   <div>
-                    <input type="text" id="input-name" name="fullName" class="form-control form-item" placeholder="Введите ФИО" />
+                    <div>
+                      <input type="text" id="input-name" name="fullName" class="form-control form-item" placeholder="Введите ФИО" />
+                    </div>
                     <p class="text-danger mb-0 d-none"></p>
                   </div>
                   <div>
-                    <input type="tel" id="input-phone" name="telephone" class="form-control form-item" placeholder="Введите номер" />
+                    <div>
+                      <input type="tel" id="input-phone" name="telephone" class="form-control form-item" placeholder="Введите номер" />
+                    </div>
                     <p class="text-danger mb-0 d-none"></p>
                   </div>
                   <div>
-                    <select class="form-select form-item" name="groupType">
-                      <option value="" selected disabled hidden>Выберите группу</option>
-                      <!-- <option value="empty" disabled class="text-align-center">Список пуст</option> -->
-                      <option value="1">One</option>
-                      <option value="2">Two</option>
-                      <option value="3">Three</option>
-                    </select>
+                    <div>
+                      <select class="form-select form-item" name="groupType">
+                        <option value="" selected disabled hidden>Выберите группу</option>
+                        <!-- <option value="empty" disabled class="text-align-center">Список пуст</option> -->
+                        <option value="1">One</option>
+                        <option value="2">Two</option>
+                        <option value="3">Three</option>
+                      </select>
+                    </div>
                     <p class="text-danger mb-0 d-none"></p>
                   </div>
                 </div>
