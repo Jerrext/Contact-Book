@@ -1,3 +1,5 @@
+// INIT
+
 if (!localStorage.getItem("contacts")) {
   localStorage.setItem("contacts", JSON.stringify([]));
 }
@@ -6,9 +8,13 @@ if (!localStorage.getItem("groups")) {
   localStorage.setItem("groups", JSON.stringify([]));
 }
 
+// RENDER
+
 contactsRenderHandler();
 groupFieldsRenderHandler();
 groupOptionsRenderHandler();
+
+// MASKS
 
 const telephoneInput = document.getElementById("input-phone");
 const nameInput = document.getElementById("input-name");
@@ -30,77 +36,29 @@ const nameMask = IMask(nameInput, {
   },
 });
 
-function validation(form, ...masks) {
-  let result = true;
+// LISTENERS
 
-  function setError(prevSibling, errText) {
-    prevSibling.nextElementSibling.classList.remove("d-none");
-    prevSibling.nextElementSibling.textContent = errText;
-    result = false;
-  }
+document.getElementById("addGroupForm").addEventListener("submit", function (e) {
+  e.preventDefault();
 
-  [].forEach.call(form.querySelectorAll(".form-item"), (input, index) => {
-    const maskIsComplete = masks[index]?.masked.isComplete;
+  if (validation(this) && this.querySelectorAll(".form-item").length) {
+    // const groups = JSON.parse(localStorage.getItem("groups"));
+    const formData = new FormData(this);
+    const data = new Set();
 
-    if (input.value.length === 0) {
-      setError(input.parentElement, "Поле не заполнено");
-    } else if (maskIsComplete !== undefined && !maskIsComplete) {
-      setError(input.parentElement, "Введите валидные данные");
+    for (let value of formData.values()) {
+      data.add(value);
     }
-  });
 
-  return result;
-}
+    localStorage.setItem("groups", JSON.stringify([...data]));
 
-function groupOptionsRenderHandler() {
-  const groups = JSON.parse(localStorage.getItem("groups"));
-  const select = document.getElementById("selectGroup");
-  select.innerHTML = "";
-  select.insertAdjacentHTML("beforeend", `<option value="" selected disabled hidden>Выберите группу</option>`);
+    groupOptionsRenderHandler(); // !!!
 
-  if (groups.length) {
-    groups.forEach((group) => {
-      select.insertAdjacentHTML("beforeend", `<option value="${group}">${group}</option>`);
-    });
-  } else {
-    select.insertAdjacentHTML("beforeend", `<option value="empty" disabled class="text-align-center">Список пуст</option>`);
+    // const groups = JSON.parse(localStorage.getItem("groups"));
+    // groups.push(formData);
+    // addContactHandler(formData);
   }
-}
-
-function contactsRenderHandler() {
-  const contacts = JSON.parse(localStorage.getItem("contacts"));
-
-  contacts.forEach((contact) => addContactHandler(contact));
-}
-
-function groupFieldsRenderHandler() {
-  const groups = JSON.parse(localStorage.getItem("groups"));
-  const groupForm = document.getElementById("addGroupForm").firstElementChild;
-  groupForm.innerHTML = "";
-
-  if (groups.length) {
-    groups.forEach((group) => {
-      groupForm.insertAdjacentHTML(
-        "beforeend",
-        `
-        <div class="mb-3">
-          <div class="d-flex">
-            <input type="text" class="form-control me-2 form-item" name="group" placeholder="Введите название" value="${group}" />
-            <button type="button" class="btn btn-outline-secondary p-2" data-delete="#">
-              <div class="icon-container">
-                <i class="fa-solid fa-trash"></i>
-              </div>
-            </button>
-          </div>
-          <p class="text-danger mb-0 d-none"></p>
-        </div>
-        `
-      );
-    });
-  } else {
-    groupForm.insertAdjacentHTML("beforeend", `<p class="text-muted">Список групп пуст</p>`);
-  }
-}
+});
 
 document.getElementById("addGroupBtn").addEventListener("click", () => {
   const groupForm = document.getElementById("addGroupForm").firstElementChild;
@@ -130,6 +88,33 @@ document.getElementById("addGroupBtn").addEventListener("click", () => {
     `
   );
 });
+
+document.getElementById("addContactForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+
+  if (validation(this, nameMask, telephoneMask)) {
+    const formData = Object.fromEntries(new FormData(this));
+    const contacts = JSON.parse(localStorage.getItem("contacts"));
+    contacts.push(formData);
+    addContactHandler(formData);
+    localStorage.setItem("contacts", JSON.stringify(contacts));
+  }
+});
+
+document.addEventListener("input", (e) => {
+  if (e.target.classList.contains("form-item")) {
+    e.target.parentElement.nextElementSibling.classList.add("d-none");
+    e.target.parentElement.nextElementSibling.textContent = "";
+  }
+});
+
+// RENDER HANDLERS
+
+function contactsRenderHandler() {
+  const contacts = JSON.parse(localStorage.getItem("contacts"));
+
+  contacts.forEach((contact) => addContactHandler(contact));
+}
 
 function addContactHandler(contact) {
   const { fullName, telephone, groupType } = contact;
@@ -161,43 +146,70 @@ function addContactHandler(contact) {
   );
 }
 
-document.getElementById("addContactForm").addEventListener("submit", function (e) {
-  e.preventDefault();
+function groupFieldsRenderHandler() {
+  const groups = JSON.parse(localStorage.getItem("groups"));
+  const groupForm = document.getElementById("addGroupForm").firstElementChild;
+  groupForm.innerHTML = "";
 
-  if (validation(this, nameMask, telephoneMask)) {
-    const formData = Object.fromEntries(new FormData(this));
-    const contacts = JSON.parse(localStorage.getItem("contacts"));
-    contacts.push(formData);
-    addContactHandler(formData);
-    localStorage.setItem("contacts", JSON.stringify(contacts));
+  if (groups.length) {
+    groups.forEach((group) => {
+      groupForm.insertAdjacentHTML(
+        "beforeend",
+        `
+        <div class="mb-3">
+          <div class="d-flex">
+            <input type="text" class="form-control me-2 form-item" name="group" placeholder="Введите название" value="${group}" />
+            <button type="button" class="btn btn-outline-secondary p-2" data-delete="#">
+              <div class="icon-container">
+                <i class="fa-solid fa-trash"></i>
+              </div>
+            </button>
+          </div>
+          <p class="text-danger mb-0 d-none"></p>
+        </div>
+        `
+      );
+    });
+  } else {
+    groupForm.insertAdjacentHTML("beforeend", `<p class="text-muted">Список групп пуст</p>`);
   }
-});
+}
 
-document.addEventListener("input", (e) => {
-  if (e.target.classList.contains("form-item")) {
-    e.target.parentElement.nextElementSibling.classList.add("d-none");
-    e.target.parentElement.nextElementSibling.textContent = "";
+function groupOptionsRenderHandler() {
+  const groups = JSON.parse(localStorage.getItem("groups"));
+  const select = document.getElementById("selectGroup");
+  select.innerHTML = "";
+  select.insertAdjacentHTML("beforeend", `<option value="" selected disabled hidden>Выберите группу</option>`);
+
+  if (groups.length) {
+    groups.forEach((group) => {
+      select.insertAdjacentHTML("beforeend", `<option value="${group}">${group}</option>`);
+    });
+  } else {
+    select.insertAdjacentHTML("beforeend", `<option value="empty" disabled class="text-align-center">Список пуст</option>`);
   }
-});
+}
 
-document.getElementById("addGroupForm").addEventListener("submit", function (e) {
-  e.preventDefault();
+// VALIDATION
 
-  if (validation(this) && this.querySelectorAll(".form-item").length) {
-    // const groups = JSON.parse(localStorage.getItem("groups"));
-    const formData = new FormData(this);
-    const data = new Set();
+function validation(form, ...masks) {
+  let result = true;
 
-    for (let value of formData.values()) {
-      data.add(value);
+  function setError(prevSibling, errText) {
+    prevSibling.nextElementSibling.classList.remove("d-none");
+    prevSibling.nextElementSibling.textContent = errText;
+    result = false;
+  }
+
+  [].forEach.call(form.querySelectorAll(".form-item"), (input, index) => {
+    const maskIsComplete = masks[index]?.masked.isComplete;
+
+    if (input.value.length === 0) {
+      setError(input.parentElement, "Поле не заполнено");
+    } else if (maskIsComplete !== undefined && !maskIsComplete) {
+      setError(input.parentElement, "Введите валидные данные");
     }
+  });
 
-    localStorage.setItem("groups", JSON.stringify([...data]));
-
-    groupOptionsRenderHandler(); // !!!
-
-    // const groups = JSON.parse(localStorage.getItem("groups"));
-    // groups.push(formData);
-    // addContactHandler(formData);
-  }
-});
+  return result;
+}
