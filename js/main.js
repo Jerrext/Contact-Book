@@ -107,9 +107,10 @@ document.getElementById("addContactForm").addEventListener("submit", function (e
   e.preventDefault();
 
   if (validation(this, nameMask, telephoneMask)) {
-    const formData = Object.fromEntries(new FormData(this));
+    const formData = new FormData(this);
+    formData.append("id", Math.trunc(Math.random() * 100000).toString());
     const contacts = JSON.parse(localStorage.getItem("contacts"));
-    contacts.push(formData);
+    contacts.push(Object.fromEntries(formData));
     localStorage.setItem("contacts", JSON.stringify(contacts));
     groupAccordionsRenderHandler();
     addContactFormWindow.hide();
@@ -135,6 +136,22 @@ document.addEventListener("input", (e) => {
   if (e.target.classList.contains("form-item")) {
     e.target.parentElement.nextElementSibling.classList.add("d-none");
     e.target.parentElement.nextElementSibling.textContent = "";
+  }
+});
+
+document.getElementById("contacts").addEventListener("click", function (e) {
+  console.log(1);
+  const contacts = JSON.parse(localStorage.getItem("contacts"));
+  const buttonTarget = e.target.closest("[data-delete]");
+  if (buttonTarget) {
+    buttonTarget.parentElement.parentElement.remove();
+    contacts.forEach((contact, index) => {
+      if (contact.id == buttonTarget.dataset.delete) {
+        contacts.splice(index, 1);
+        localStorage.setItem("contacts", JSON.stringify(contacts));
+        groupAccordionsRenderHandler();
+      }
+    });
   }
 });
 
@@ -214,12 +231,12 @@ function groupAccordionsRenderHandler() {
                         <div class="contacts__group-item-right">
                           <a href="tel:+${contact.telephone.replace(/\D+/g, "")}" class="text-body fs-5 text-decoration-none">${contact.telephone}</a>
                           <div class="contacts__group-item-controls">
-                            <button type="button" class="btn btn-outline-secondary p-2" data-edit="#">
+                            <button type="button" class="btn btn-outline-secondary p-2" data-edit="${contact.id}">
                               <div class="icon-container">
                                 <i class="fa-regular fa-pen-to-square"></i>
                               </div>
                             </button>
-                            <button type="button" class="btn btn-outline-secondary p-2" data-delete="#">
+                            <button type="button" class="btn btn-outline-secondary p-2" data-delete="${contact.id}">
                               <div class="icon-container">
                                 <i class="fa-solid fa-trash"></i>
                               </div>
