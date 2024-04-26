@@ -66,14 +66,12 @@ function groupFieldsRenderHandler() {
 
   if (groups.length) {
     groups.forEach((group) => {
-      const { type, title } = group;
-
       groupForm.insertAdjacentHTML(
         "beforeend",
         `
         <div class="mb-3">
           <div class="d-flex">
-            <input type="text" class="form-control me-2 form-item" placeholder="Введите название" value="${title}" />
+            <input type="text" class="form-control me-2 form-item" name="group" placeholder="Введите название" value="${group}" />
             <button type="button" class="btn btn-outline-secondary p-2" data-delete="#">
               <div class="icon-container">
                 <i class="fa-solid fa-trash"></i>
@@ -90,8 +88,14 @@ function groupFieldsRenderHandler() {
   }
 }
 
+const groupFields = [];
+
 document.getElementById("addGroupBtn").addEventListener("click", () => {
   const groupForm = document.getElementById("addGroupForm").firstElementChild;
+
+  // let groupFieldsLength = localStorage.getItem("groups").length;
+
+  // console.log(groupFieldsLength);
 
   if (groupForm.firstElementChild.tagName === "P") {
     groupForm.innerHTML = "";
@@ -102,7 +106,7 @@ document.getElementById("addGroupBtn").addEventListener("click", () => {
     `
     <div class="mb-3">
       <div class="d-flex">
-        <input type="text" class="form-control me-2 form-item" placeholder="Введите название" />
+        <input type="text" class="form-control me-2 form-item" name="group" placeholder="Введите название" />
         <button type="button" class="btn btn-outline-secondary p-2" data-delete="#">
           <div class="icon-container">
             <i class="fa-solid fa-trash"></i>
@@ -167,11 +171,19 @@ document.addEventListener("input", (e) => {
 document.getElementById("addGroupForm").addEventListener("submit", function (e) {
   e.preventDefault();
 
-  if (validation(this)) {
-    // const formData = Object.fromEntries(new FormData(this));
+  if (validation(this) && this.querySelectorAll(".form-item").length) {
+    const formData = new FormData(this);
+
+    const data = new Set();
+
+    for (let value of formData.values()) {
+      data.add(value);
+    }
+
+    localStorage.setItem("groups", JSON.stringify([...data]));
+
     // const groups = JSON.parse(localStorage.getItem("groups"));
     // groups.push(formData);
     // addContactHandler(formData);
-    // localStorage.setItem("groups", JSON.stringify(groups));
   }
 });
