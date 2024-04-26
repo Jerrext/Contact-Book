@@ -7,6 +7,7 @@ if (!localStorage.getItem("groups")) {
 }
 
 contactsRenderHandler();
+groupFieldsRenderHandler();
 
 const telephoneInput = document.getElementById("input-phone");
 const nameInput = document.getElementById("input-name");
@@ -53,6 +54,56 @@ function contactsRenderHandler() {
 
   contacts.forEach((contact) => addContactHandler(contact));
 }
+
+function groupFieldsRenderHandler() {
+  const groups = JSON.parse(localStorage.getItem("groups"));
+  const groupForm = document.getElementById("addGroupForm").firstElementChild;
+  groupForm.innerHTML = "";
+
+  if (groups.length) {
+    groups.forEach((group) => {
+      const { type, title } = group;
+
+      groupForm.insertAdjacentHTML(
+        "beforeend",
+        `
+        <div class="d-flex mb-3">
+          <input type="text" class="form-control me-2" placeholder="Введите название" value="${title}" />
+          <button type="button" class="btn btn-outline-secondary p-2" data-delete="#">
+            <div class="icon-container">
+              <i class="fa-solid fa-trash"></i>
+            </div>
+          </button>
+        </div>
+        `
+      );
+    });
+  } else {
+    groupForm.insertAdjacentHTML("beforeend", `<p class="text-muted">Список групп пуст</p>`);
+  }
+}
+
+document.getElementById("addGroupBtn").addEventListener("click", () => {
+  const groupForm = document.getElementById("addGroupForm").firstElementChild;
+
+  if (groupForm.firstElementChild.tagName === "P") {
+    groupForm.innerHTML = "";
+  }
+
+  groupForm.insertAdjacentHTML(
+    "beforeend",
+    `
+    <div class="d-flex mb-3">
+      <input type="text" class="form-control me-2" placeholder="Введите название" />
+      <button type="button" class="btn btn-outline-secondary p-2" data-delete="#">
+        <div class="icon-container">
+          <i class="fa-solid fa-trash"></i>
+        </div>
+      </button>
+    </div>
+    `
+  );
+});
 
 function addContactHandler(contact) {
   const { fullName, telephone, groupType } = contact;
