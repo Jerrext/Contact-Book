@@ -10,7 +10,8 @@ if (!localStorage.getItem("groups")) {
 
 // RENDER
 
-contactsRenderHandler();
+groupAccordionsRenderHandler();
+// contactsRenderHandler();
 groupFieldsRenderHandler();
 groupOptionsRenderHandler();
 
@@ -46,9 +47,9 @@ document.getElementById("addGroupForm").addEventListener("submit", function (e) 
     const formData = new FormData(this);
     const data = new Set();
 
-    for (let value of formData.values()) {
-      data.add(value);
-    }
+    [...formData.values()].forEach((value, index) => {
+      data.add({ value: index, label: value });
+    });
 
     localStorage.setItem("groups", JSON.stringify([...data]));
 
@@ -96,8 +97,8 @@ document.getElementById("addContactForm").addEventListener("submit", function (e
     const formData = Object.fromEntries(new FormData(this));
     const contacts = JSON.parse(localStorage.getItem("contacts"));
     contacts.push(formData);
-    addContactHandler(formData);
     localStorage.setItem("contacts", JSON.stringify(contacts));
+    groupAccordionsRenderHandler();
   }
 });
 
@@ -109,42 +110,6 @@ document.addEventListener("input", (e) => {
 });
 
 // RENDER HANDLERS
-
-function contactsRenderHandler() {
-  const contacts = JSON.parse(localStorage.getItem("contacts"));
-
-  contacts.forEach((contact) => addContactHandler(contact));
-}
-
-function addContactHandler(contact) {
-  const { fullName, telephone, groupType } = contact;
-
-  document.getElementById(`group-${groupType}`).insertAdjacentHTML(
-    "beforeend",
-    `
-    <div class="accordion-body">
-      <div class="contacts__group-item">
-        <h3 class="mb-0 text-muted fs-5 fw-normal">${fullName}</h3>
-        <div class="contacts__group-item-right">
-          <a href="tel:+79114211471" class="text-body fs-5 text-decoration-none">${telephone}</a>
-          <div class="contacts__group-item-controls">
-            <button type="button" class="btn btn-outline-secondary p-2" data-edit="#">
-              <div class="icon-container">
-                <i class="fa-regular fa-pen-to-square"></i>
-              </div>
-            </button>
-            <button type="button" class="btn btn-outline-secondary p-2" data-delete="#">
-              <div class="icon-container">
-                <i class="fa-solid fa-trash"></i>
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    `
-  );
-}
 
 function groupFieldsRenderHandler() {
   const groups = JSON.parse(localStorage.getItem("groups"));
@@ -158,7 +123,7 @@ function groupFieldsRenderHandler() {
         `
         <div class="mb-3">
           <div class="d-flex">
-            <input type="text" class="form-control me-2 form-item" name="group" placeholder="Введите название" value="${group}" />
+            <input type="text" class="form-control me-2 form-item" name="group" placeholder="Введите название" value="${group.label}" />
             <button type="button" class="btn btn-outline-secondary p-2" data-delete="#">
               <div class="icon-container">
                 <i class="fa-solid fa-trash"></i>
@@ -183,10 +148,68 @@ function groupOptionsRenderHandler() {
 
   if (groups.length) {
     groups.forEach((group) => {
-      select.insertAdjacentHTML("beforeend", `<option value="${group}">${group}</option>`);
+      select.insertAdjacentHTML("beforeend", `<option value="${group.value}">${group.label}</option>`);
     });
   } else {
     select.insertAdjacentHTML("beforeend", `<option value="empty" disabled class="text-align-center">Список пуст</option>`);
+  }
+}
+
+function groupAccordionsRenderHandler() {
+  const groups = JSON.parse(localStorage.getItem("groups"));
+  const contacts = JSON.parse(localStorage.getItem("contacts"));
+  const contactsContainer = document.getElementById("contacts");
+  contactsContainer.innerHTML = "";
+
+  if (groups.length) {
+    groups.forEach((group) => {
+      const filteredContacts = contacts.filter((contact) => contact.groupType == group.value);
+
+      if (filteredContacts.length) {
+        contactsContainer.insertAdjacentHTML(
+          "beforeend",
+          `
+          <div class="contacts__accordion-item shadow">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed fw-bold p-4 fs-5" type="button" data-bs-toggle="collapse" data-bs-target="#group-${group.value}" aria-expanded="true" aria-controls="group-${group.value}">
+                ${group.label}
+              </button>
+            </h2>
+            <div id="group-${group.value}" class="accordion-collapse collapse">
+              <div class="accordion-body">
+                ${filteredContacts
+                  .map(
+                    (contact) => `
+                      <div class="contacts__group-item">
+                        <h3 class="mb-0 text-muted fs-5 fw-normal">${contact.fullName}</h3>
+                        <div class="contacts__group-item-right">
+                          <a href="tel:+${contact.telephone.replace(/\D+/g, "")}" class="text-body fs-5 text-decoration-none">${contact.telephone}</a>
+                          <div class="contacts__group-item-controls">
+                            <button type="button" class="btn btn-outline-secondary p-2" data-edit="#">
+                              <div class="icon-container">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                              </div>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary p-2" data-delete="#">
+                              <div class="icon-container">
+                                <i class="fa-solid fa-trash"></i>
+                              </div>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    `
+                  )
+                  .join("")}
+              </div>
+            </div>
+          </div>
+          `
+        );
+      }
+    });
+  } else {
+    contactsContainer.insertAdjacentHTML("beforeend", `<p class="text-muted empty-state-text">Список контактов пуст</p>`);
   }
 }
 
