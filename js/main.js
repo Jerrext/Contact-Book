@@ -262,12 +262,11 @@ function groupOptionsRenderHandler() {
 
 function groupAccordionsRenderHandler() {
   const groups = getGroups();
-  const contacts = getContacts();
   const contactsContainer = document.getElementById("contacts");
   contactsContainer.innerHTML = "";
 
-  if (contacts.length) {
-    groups.forEach((group) => {
+  if (groups.length) {
+   groups.forEach((group) => {
       contactsContainer.insertAdjacentHTML(
         "beforeend",
         `
