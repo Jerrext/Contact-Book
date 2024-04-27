@@ -26,9 +26,11 @@ function setContacts(value) {
 
 // RENDER
 
-groupAccordionsRenderHandler();
-groupFieldsRenderHandler();
-groupOptionsRenderHandler();
+document.addEventListener("DOMContentLoaded", () => {
+  groupAccordionsRenderHandler();
+  groupFieldsRenderHandler();
+  groupOptionsRenderHandler();
+});
 
 // MASKS
 
@@ -144,7 +146,7 @@ addContactForm.addEventListener("submit", function (e) {
     }
 
     setContacts(contacts);
-    groupAccordionsRenderHandler();
+    contactListRender([formData.get("groupType"), this.dataset.prevType]);
     addContactFormWindow.hide();
   }
 });
@@ -183,23 +185,27 @@ document.getElementById("contacts").addEventListener("click", function (e) {
   const contacts = getContacts();
   const buttonDeleteTarget = e.target.closest("[data-delete]");
   const buttonEditTarget = e.target.closest("[data-edit]");
-  console.log(buttonDeleteTarget);
 
   if (buttonDeleteTarget) {
-    buttonDeleteTarget.parentElement.parentElement.remove();
+    const conactTarget = buttonDeleteTarget.parentElement.parentElement;
+    const currentGroupId = conactTarget.parentElement.parentElement.id.split("-")[1];
+    conactTarget.remove();
+
     contacts.forEach((contact, index) => {
       if (contact.id == buttonDeleteTarget.dataset.delete) {
         contacts.splice(index, 1);
-        setContacts(contacts);
-        groupAccordionsRenderHandler();
       }
     });
+
+    setContacts(contacts);
+    contactListRender([currentGroupId]);
   } else if (buttonEditTarget) {
     const inputs = [...addContactForm.querySelectorAll(".form-item")];
     const currentContact = contacts.find((contact) => contact.id == buttonEditTarget.dataset.edit);
     addContactFormWindow.show();
     addContactForm.dataset.action = "edit";
     addContactForm.dataset.current = buttonEditTarget.dataset.edit;
+    addContactForm.dataset.prevType = currentContact.groupType;
     inputs[0].value = currentContact.fullName;
     nameMask.updateValue();
     inputs[1].value = currentContact.telephone;
@@ -262,12 +268,9 @@ function groupAccordionsRenderHandler() {
 
   if (contacts.length) {
     groups.forEach((group) => {
-      const filteredContacts = contacts.filter((contact) => contact.groupType == group.value);
-
-      if (filteredContacts.length) {
-        contactsContainer.insertAdjacentHTML(
-          "beforeend",
-          `
+      contactsContainer.insertAdjacentHTML(
+        "beforeend",
+        `
           <div class="contacts__accordion-item shadow">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed fw-bold p-4 fs-5" type="button" data-bs-toggle="collapse" data-bs-target="#group-${group.value}" aria-expanded="true" aria-controls="group-${group.value}">
@@ -275,41 +278,56 @@ function groupAccordionsRenderHandler() {
               </button>
             </h2>
             <div id="group-${group.value}" class="accordion-collapse collapse">
-              <div class="accordion-body">
-                ${filteredContacts
-                  .map(
-                    (contact) => `
-                      <div class="contacts__group-item align-items-center">
-                        <div class="d-flex justify-content-between flex-fill me-3 flex-column flex-sm-row ">
-                          <h3 class="mb-0 text-muted fs-5 fw-normal mb-2 mb-sm-0">${contact.fullName}</h3>
-                          <a href="tel:+${contact.telephone.replace(/\D+/g, "")}" class="text-body fs-5 text-decoration-none">${contact.telephone}</a>
-                        </div>
-                        <div class="contacts__group-item-controls flex-column flex-sm-row">
-                          <button type="button" class="btn btn-outline-secondary p-2" data-edit="${contact.id}">
-                            <div class="icon-container">
-                              <i class="fa-regular fa-pen-to-square"></i>
-                            </div>
-                          </button>
-                          <button type="button" class="btn btn-outline-secondary p-2" data-delete="${contact.id}">
-                            <div class="icon-container">
-                              <i class="fa-solid fa-trash"></i>
-                            </div>
-                          </button>
-                        </div>
-                      </div>
-                    `
-                  )
-                  .join("")}
-              </div>
+              <div class="accordion-body"></div>
             </div>
           </div>
           `
-        );
-      }
+      );
     });
+    contactListRender(groups.map((group) => group.value));
   } else {
     contactsContainer.insertAdjacentHTML("beforeend", `<p class="text-muted empty-state-text">Список контактов пуст</p>`);
   }
+}
+
+function contactListRender(currentGroupValueArr) {
+  const contacts = getContacts();
+
+  currentGroupValueArr.forEach((item) => {
+    const filteredContacts = contacts.filter((contact) => contact.groupType == item);
+    const contactListHtml = filteredContacts.map((contact) => contactRender(contact)).join("");
+    const currentNode = document.getElementById(`group-${item}`);
+    currentNode.firstElementChild.innerHTML = "";
+
+    if (filteredContacts.length) {
+      currentNode.firstElementChild.insertAdjacentHTML("beforeend", contactListHtml);
+    } else {
+      currentNode.firstElementChild.insertAdjacentHTML("beforeend", "<p class='text-muted'>Список пуст</p");
+    }
+  });
+}
+
+function contactRender(contact) {
+  return `
+  <div class="contacts__group-item align-items-center">
+    <div class="d-flex justify-content-between flex-fill me-3 flex-column flex-sm-row ">
+      <h3 class="mb-0 text-muted fs-5 fw-normal mb-2 mb-sm-0">${contact.fullName}</h3>
+      <a href="tel:+${contact.telephone.replace(/\D+/g, "")}" class="text-body fs-5 text-decoration-none">${contact.telephone}</a>
+    </div>
+    <div class="contacts__group-item-controls flex-column flex-sm-row">
+      <button type="button" class="btn btn-outline-secondary p-2" data-edit="${contact.id}">
+        <div class="icon-container">
+          <i class="fa-regular fa-pen-to-square"></i>
+        </div>
+      </button>
+      <button type="button" class="btn btn-outline-secondary p-2" data-delete="${contact.id}">
+        <div class="icon-container">
+          <i class="fa-solid fa-trash"></i>
+        </div>
+      </button>
+    </div>
+  </div>
+  `;
 }
 
 // VALIDATION
