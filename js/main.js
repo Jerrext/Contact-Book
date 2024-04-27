@@ -127,6 +127,7 @@ addContactForm.addEventListener("submit", function (e) {
   if (validation(this, nameMask, telephoneMask)) {
     const formData = new FormData(this);
     const contacts = getContacts();
+    const rerenderGroups = [formData.get("groupType")];
 
     switch (this.dataset.action) {
       case "edit":
@@ -136,6 +137,7 @@ addContactForm.addEventListener("submit", function (e) {
             contacts.splice(index, 1, Object.fromEntries(formData));
           }
         });
+        rerenderGroups.push(this.dataset.prevType);
         break;
       case "add":
         formData.append("id", Math.trunc(Math.random() * 100000).toString());
@@ -146,7 +148,7 @@ addContactForm.addEventListener("submit", function (e) {
     }
 
     setContacts(contacts);
-    contactListRender([formData.get("groupType"), this.dataset.prevType]);
+    contactListRender(rerenderGroups);
     addContactFormWindow.hide();
   }
 });
