@@ -260,22 +260,22 @@ function groupAccordionsRenderHandler() {
                 ${filteredContacts
                   .map(
                     (contact) => `
-                      <div class="contacts__group-item">
-                        <h3 class="mb-0 text-muted fs-5 fw-normal">${contact.fullName}</h3>
-                        <div class="contacts__group-item-right">
+                      <div class="contacts__group-item align-items-center">
+                        <div class="d-flex justify-content-between flex-fill me-3 flex-column flex-sm-row ">
+                          <h3 class="mb-0 text-muted fs-5 fw-normal mb-2 mb-sm-0">${contact.fullName}</h3>
                           <a href="tel:+${contact.telephone.replace(/\D+/g, "")}" class="text-body fs-5 text-decoration-none">${contact.telephone}</a>
-                          <div class="contacts__group-item-controls">
-                            <button type="button" class="btn btn-outline-secondary p-2" data-edit="${contact.id}">
-                              <div class="icon-container">
-                                <i class="fa-regular fa-pen-to-square"></i>
-                              </div>
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary p-2" data-delete="${contact.id}">
-                              <div class="icon-container">
-                                <i class="fa-solid fa-trash"></i>
-                              </div>
-                            </button>
-                          </div>
+                        </div>
+                        <div class="contacts__group-item-controls flex-column flex-sm-row">
+                          <button type="button" class="btn btn-outline-secondary p-2" data-edit="${contact.id}">
+                            <div class="icon-container">
+                              <i class="fa-regular fa-pen-to-square"></i>
+                            </div>
+                          </button>
+                          <button type="button" class="btn btn-outline-secondary p-2" data-delete="${contact.id}">
+                            <div class="icon-container">
+                              <i class="fa-solid fa-trash"></i>
+                            </div>
+                          </button>
                         </div>
                       </div>
                     `
