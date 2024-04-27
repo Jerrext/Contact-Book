@@ -73,12 +73,6 @@ button[data-edit]:hover {
   display: none;
 }
 
-/* .contacts__group-item-right {
-  display: flex;
-  gap: 24px;
-  align-items: center;
-} */
-
 .contacts__group-item-controls {
   display: flex;
   gap: 8px;

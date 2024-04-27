@@ -8,6 +8,22 @@ if (!localStorage.getItem("groups")) {
   localStorage.setItem("groups", JSON.stringify([]));
 }
 
+function getGroups() {
+  return JSON.parse(localStorage.getItem("groups"));
+}
+
+function getContacts() {
+  return JSON.parse(localStorage.getItem("contacts"));
+}
+
+function setGroups(value) {
+  localStorage.setItem("groups", JSON.stringify(value));
+}
+
+function setContacts(value) {
+  localStorage.setItem("contacts", JSON.stringify(value));
+}
+
 // RENDER
 
 groupAccordionsRenderHandler();
@@ -16,14 +32,11 @@ groupOptionsRenderHandler();
 
 // MASKS
 
-const telephoneInput = document.getElementById("input-phone");
-const nameInput = document.getElementById("input-name");
-
-const telephoneMask = IMask(telephoneInput, {
+const telephoneMask = IMask(document.getElementById("input-phone"), {
   mask: "+{7}(000)000-00-00",
 });
 
-const nameMask = IMask(nameInput, {
+const nameMask = IMask(document.getElementById("input-name"), {
   mask: "name#name#name",
   lazy: false,
   blocks: {
@@ -41,12 +54,15 @@ const nameMask = IMask(nameInput, {
 const addContactFormWindow = new bootstrap.Offcanvas(addContact);
 const addGroupFormWindow = new bootstrap.Offcanvas(addGroup);
 
-document.getElementById("addGroupForm").addEventListener("submit", function (e) {
+const addGroupForm = document.getElementById("addGroupForm");
+const addContactForm = document.getElementById("addContactForm");
+
+addGroupForm.addEventListener("submit", function (e) {
   e.preventDefault();
 
   if (validation(this)) {
-    const groups = JSON.parse(localStorage.getItem("groups"));
-    const contacts = JSON.parse(localStorage.getItem("contacts"));
+    const groups = getGroups();
+    const contacts = getContacts();
 
     const formInputs = [...this.querySelectorAll(".form-item")];
 
@@ -58,16 +74,16 @@ document.getElementById("addGroupForm").addEventListener("submit", function (e) 
       newGroupData.set(input.dataset.targetDelete, input.value);
     });
 
-    for (let [value, label] of oldGroupData) {
-      if (!newGroupData.has(value)) {
-        newContactsData = contacts.filter((item) => item.groupType !== value);
+    for (let key of oldGroupData.keys()) {
+      if (!newGroupData.has(key)) {
+        newContactsData = newContactsData.filter((item) => item.groupType !== key);
       }
     }
 
     const dataTransformed = Object.entries(Object.fromEntries(newGroupData)).map((item) => ({ value: item[0], label: item[1] }));
 
-    localStorage.setItem("groups", JSON.stringify(dataTransformed));
-    localStorage.setItem("contacts", JSON.stringify(newContactsData));
+    setGroups(dataTransformed);
+    setContacts(newContactsData);
 
     groupOptionsRenderHandler();
     groupFieldsRenderHandler();
@@ -103,35 +119,42 @@ document.getElementById("addGroupBtn").addEventListener("click", () => {
   );
 });
 
-document.getElementById("addContactForm").addEventListener("submit", function (e) {
+addContactForm.addEventListener("submit", function (e) {
   e.preventDefault();
 
   if (validation(this, nameMask, telephoneMask)) {
     const formData = new FormData(this);
-    const contacts = JSON.parse(localStorage.getItem("contacts"));
-    if (this.dataset.action === "edit") {
-      contacts.forEach((contact, index) => {
-        if (contact.id === this.dataset.current) {
-          formData.append("id", this.dataset.current);
-          contacts.splice(index, 1, Object.fromEntries(formData));
-          localStorage.setItem("contacts", JSON.stringify(contacts));
-        }
-      });
-    } else {
-      formData.append("id", Math.trunc(Math.random() * 100000).toString());
-      contacts.push(Object.fromEntries(formData));
-      localStorage.setItem("contacts", JSON.stringify(contacts));
+    const contacts = getContacts();
+
+    switch (this.dataset.action) {
+      case "edit":
+        contacts.forEach((contact, index) => {
+          if (contact.id === this.dataset.current) {
+            formData.append("id", contact.id);
+            contacts.splice(index, 1, Object.fromEntries(formData));
+          }
+        });
+        break;
+      case "add":
+        formData.append("id", Math.trunc(Math.random() * 100000).toString());
+        contacts.push(Object.fromEntries(formData));
+        break;
+      default:
+        return;
     }
+
+    setContacts(contacts);
     groupAccordionsRenderHandler();
     addContactFormWindow.hide();
   }
 });
 
 document.getElementById("addContactBtn").addEventListener("click", () => {
-  document.getElementById("addContactForm").dataset.action = "add";
+  addContactForm.dataset.action = "add";
+  addContactForm.dataset.current = "null";
 });
 
-document.getElementById("addGroupForm").addEventListener("click", function (e) {
+addGroupForm.addEventListener("click", function (e) {
   const buttonTarget = e.target.closest("[data-delete]");
   if (buttonTarget) {
     buttonTarget.parentElement.parentElement.remove();
@@ -139,14 +162,11 @@ document.getElementById("addGroupForm").addEventListener("click", function (e) {
 });
 
 document.getElementById("addContact").addEventListener("hide.bs.offcanvas", function () {
-  this.querySelector("#addContactForm").reset();
+  addContactForm.reset();
 
-  const formInputs = [...this.querySelectorAll(".form-item")];
+  const formInputs = [...document.querySelectorAll(".form-item")];
 
-  formInputs.forEach((input) => {
-    input.parentElement.nextElementSibling.classList.add("d-none");
-    input.parentElement.nextElementSibling.textContent = "";
-  });
+  formInputs.forEach((input) => clearError(input));
 });
 
 document.getElementById("addGroup").addEventListener("hide.bs.offcanvas", function () {
@@ -155,23 +175,22 @@ document.getElementById("addGroup").addEventListener("hide.bs.offcanvas", functi
 
 document.addEventListener("input", (e) => {
   if (e.target.classList.contains("form-item")) {
-    e.target.parentElement.nextElementSibling.classList.add("d-none");
-    e.target.parentElement.nextElementSibling.textContent = "";
+    clearError(e.target);
   }
 });
 
 document.getElementById("contacts").addEventListener("click", function (e) {
-  const contacts = JSON.parse(localStorage.getItem("contacts"));
+  const contacts = getContacts();
   const buttonDeleteTarget = e.target.closest("[data-delete]");
   const buttonEditTarget = e.target.closest("[data-edit]");
-  const addContactForm = document.getElementById("addContactForm");
+  console.log(buttonDeleteTarget);
 
   if (buttonDeleteTarget) {
     buttonDeleteTarget.parentElement.parentElement.remove();
     contacts.forEach((contact, index) => {
       if (contact.id == buttonDeleteTarget.dataset.delete) {
         contacts.splice(index, 1);
-        localStorage.setItem("contacts", JSON.stringify(contacts));
+        setContacts(contacts);
         groupAccordionsRenderHandler();
       }
     });
@@ -192,7 +211,7 @@ document.getElementById("contacts").addEventListener("click", function (e) {
 // RENDER HANDLERS
 
 function groupFieldsRenderHandler() {
-  const groups = JSON.parse(localStorage.getItem("groups"));
+  const groups = getGroups();
   const groupForm = document.getElementById("addGroupForm").firstElementChild;
   groupForm.innerHTML = "";
 
@@ -221,7 +240,7 @@ function groupFieldsRenderHandler() {
 }
 
 function groupOptionsRenderHandler() {
-  const groups = JSON.parse(localStorage.getItem("groups"));
+  const groups = getGroups();
   const select = document.getElementById("selectGroup");
   select.innerHTML = "";
   select.insertAdjacentHTML("beforeend", `<option value="" selected disabled hidden>Выберите группу</option>`);
@@ -236,8 +255,8 @@ function groupOptionsRenderHandler() {
 }
 
 function groupAccordionsRenderHandler() {
-  const groups = JSON.parse(localStorage.getItem("groups"));
-  const contacts = JSON.parse(localStorage.getItem("contacts"));
+  const groups = getGroups();
+  const contacts = getContacts();
   const contactsContainer = document.getElementById("contacts");
   contactsContainer.innerHTML = "";
 
@@ -315,4 +334,9 @@ function validation(form, ...masks) {
   });
 
   return result;
+}
+
+function clearError(input) {
+  input.parentElement.nextElementSibling.classList.add("d-none");
+  input.parentElement.nextElementSibling.textContent = "";
 }
